@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./rust-design-patterns/rdp/Cargo.toml",
+        "./rust-design-patterns/rdp/Cargo.toml"
+    ]
+}
