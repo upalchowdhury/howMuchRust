@@ -1,4 +1,5 @@
-use std::fs::File;
+use std::sync::Mutex;
+use std::{fs::File, marker::PhantomData};
 use std::io::Cursor;
 use ark_serialize::{CanonicalDeserialize,Read};
 use std::error::Error;
@@ -52,4 +53,82 @@ pub fn readcsv(path : &str) -> Result<(),Box<dyn Error>> {
 
 
 
+// Marker patter : Phantom data : store state as type parameter
+
+pub struct Dog<Breed>{
+        pub name:String,
+        pub breed:PhantomData<Breed>,
+    }
+
+pub struct Poodle {}
+pub struct Labardor {}
+
+
+
+
+// pecialized implementations to get the name of the breed, without having to actually
+//store that value as state in the structure
+//doing a concrete specialization for with the given type in compile time opt
+impl Dog<Labardor> {
+    pub fn breed_name (&self) -> &'static str {
+        "labardor"
+    }
+}
+
+impl Dog<Poodle> {
+    pub fn breed_feature (&self) -> &'static str {
+        "poodle's feature like barking"
+    }
+}
+
+
+// Traits and trait objects : it allows 
+// Separation of state and functions AND polymorphism (trait objects)
+
+pub struct Sf;
+
+pub struct Multi;
+
+struct Aptcolx;
+
+
+trait Bathroom {
+    fn add (&self) -> u8;
+}
+
+trait Garage {
+    fn add (&self) -> u8;
+}
+
+pub trait Room {
+    fn add (&self) -> u8;
+}
+
+// trait Build = Bathroom + Garage + Room;
+
+impl Room for Sf {
+    fn add (&self) -> u8{
+        4
+    }
+    
+}
+
+impl Room for Multi {
+    fn add (&self) -> u8{
+        8
+    }
+    
+}
+
+
+
+
+pub fn build (house : &impl Room) -> u8 { // instead of multi or sf use trait to use trait obj
+    let s = house.add();
+
+    println!("{:?}",s);
+
+    s
+
+}
 
