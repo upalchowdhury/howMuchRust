@@ -2,7 +2,7 @@ mod iterator_combinator;
 use ark_serialize::{CanonicalDeserialize,Read};
 use ark_bls12_381::{g2::Config, Bls12_381, Fr, G1Affine, G1Projective, G2Affine, G2Projective};
 use core::marker::PhantomData;
-use crate::iterator_combinator::{Labardor, Multi, Poodle, Sf};
+use crate::iterator_combinator::{Aptcolx, Labardor, Multi, Poodle, Sf};
 
 
 
@@ -39,7 +39,21 @@ fn main(){
 
 
     // trait and trait objects 
-    iterator_combinator::build(&Multi);
+    iterator_combinator::build(&Aptcolx);
+
+
+
+    // pattern matching
+    iterator_combinator::test_write_to_file();
+
+
+
+
+
+    // builder pattern
+    let mut new_car_builder = CarBuilder::new();
+    new_car_builder::withmake("Forrester");
+    let car = new_car_builder::build();
 
 
 

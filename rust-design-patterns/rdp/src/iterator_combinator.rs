@@ -89,7 +89,7 @@ pub struct Sf;
 
 pub struct Multi;
 
-struct Aptcolx;
+pub struct Aptcolx;
 
 
 trait Bathroom {
@@ -101,7 +101,9 @@ trait Garage {
 }
 
 pub trait Room {
-    fn add (&self) -> u8;
+    fn add (&self) -> u8 { // This is default value 
+        2
+    }
 }
 
 // trait Build = Bathroom + Garage + Room;
@@ -120,10 +122,17 @@ impl Room for Multi {
     
 }
 
+impl Room for Aptcolx { // testing default
+    // fn add (&self) -> u8
+    // {
+    //     8
+    // }
+    
+}
 
 
 
-pub fn build (house : &impl Room) -> u8 { // instead of multi or sf use trait to use trait obj
+pub fn build (house : &impl Room) -> u8 { // instead of multi or sf use trait to use trait obj. use dyn or impl
     let s = house.add();
 
     println!("{:?}",s);
@@ -131,4 +140,135 @@ pub fn build (house : &impl Room) -> u8 { // instead of multi or sf use trait to
     s
 
 }
+
+fn test_trait_obj (){
+    let mut v = Vec::<Box<dyn Room>>::new(); // Trait objects are not sized thus need to use Box. other ?Sized are Rc, Refcell, Mutex
+    v.push(Box::new(Sf {}));
+    v.push(Box::new(Multi {}));
+    v.iter().for_each(|i| i.add());
+}
+
+
+// Pattern matching 
+fn write_to_file() -> std::io::Result<()> {
+
+    use std::io::prelude::*;
+    let mut file = File::create("write.csv")?;
+    file.write_all(b"abcks cs")?;
+    Ok(())
+}
+pub fn test_write_to_file() {
+    match write_to_file() {
+        Ok(()) => println!("Write suceeded"),
+        Err(err) => println!("Write failed: {}", err.to_string()),
+    }
+}
+
+
+
+// Builder pattern
+
+pub trait Builder<T> {
+    fn new() -> Self;
+    fn build(self) -> T;
+}
+
+
+pub trait Buildable<T, B:Builder<T>> {
+    fn builder () -> B;
+}
+
+
+
+#[derive(Debug)]
+struct Car {
+    make : String,
+    model : String,
+    size : u8,
+    color : String
+}
+
+impl Car {
+    fn make(&self) -> &String {
+        &self.make
+    }
+    fn model(&self) -> &String {
+        &self.model
+    }
+    fn size(&self) -> &u8 {
+        &self.size
+    }
+    fn color(&self) -> &String {
+        &self.color
+    }
+
+}
+
+struct CarBuilder {
+    car : Car,
+}
+
+impl  CarBuilder {
+    // fn new () -> Self{
+
+    //     Self { 
+    //         car : Car {
+    //                 make : String::new(),
+    //                 model : String::new(),
+    //                 size : 0,
+    //                 color : String::new(),
+    //         }
+    //      }
+
+    // }
+
+
+    fn withmake (&mut self, make : &str) {
+        self.car.make = make.into()
+    }
+
+    fn withmodel (&mut self, model : &str) {
+        self.car.model = model.into()
+    }
+
+    fn withsize (&mut self, size: u8) {
+        self.car.size = size
+    }
+
+    fn withcolor (&mut self, color: &str) {
+        self.car.color = color.into()
+    }
+}
+
+impl Builder<Car> for CarBuilder {
+    fn new() -> Self {
+                    Self {
+                        car: Car {
+                            make: String::new(),
+                            model: String::new(),
+                            size: 0,
+                            color: String::new(),
+                    },
+                }
+            }
+    fn build(self) -> Car {
+        self.car
+    }
+}
+
+// get a new instance of  builder directly from a Car
+impl Buildable<Car,CarBuilder> for Car { 
+    fn builder () -> CarBuilder {
+            CarBuilder::new()
+        
+    }
+
+}
+
+
+
+
+
+
+
 
