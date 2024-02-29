@@ -66,7 +66,7 @@ pub struct Labardor {}
 
 
 
-// pecialized implementations to get the name of the breed, without having to actually
+// specialized implementations to get the name of the breed, without having to actually
 //store that value as state in the structure
 //doing a concrete specialization for with the given type in compile time opt
 impl Dog<Labardor> {
@@ -82,6 +82,46 @@ impl Dog<Poodle> {
 }
 
 
+
+/*
+Without phantom data implementation:
+
+Trait implementations can now be done on the breed instances themselves rather than on 
+the Dog struct parameterized by a breed type, 
+allowing for more straightforward trait usage and implementation but it uses storage. 
+struct Dog<DogBreed> {
+    name: String,
+    breed: DogBreed,
+}
+
+trait BreedName {
+    fn breed_name(&self) -> &'static str;
+}
+
+// Assume Dachshund is a struct representing the breed.
+struct Dachshund;
+
+// Implementing the BreedName trait for Dachshund.
+impl BreedName for Dachshund {
+    fn breed_name(&self) -> &'static str {
+        "dachshund"
+    }
+}
+
+// Example usage
+fn main() {
+    // Now you must provide an instance of Dachshund when creating a Dog.
+    let my_dog = Dog {
+        name: "Fido".to_string(),
+        breed: Dachshund,
+    };
+
+    // Accessing the breed name through the method defined in the trait.
+    println!("Breed name: {}", my_dog.breed.breed_name());
+}
+
+
+*/
 // Traits and trait objects : it allows 
 // Separation of state and functions AND polymorphism (trait objects)
 
@@ -266,6 +306,38 @@ impl Buildable<Car,CarBuilder> for Car {
 }
 
 
+// spread syntax
+
+struct Taxi {
+    number : u8,
+    color : String,
+    make : String,
+    model : String,
+}
+
+impl Taxi {
+    fn new(&self,number:u8,color:String,make:String,model:String) -> Self {
+
+        Self {
+            ..self.new(number, color, make, model)
+        }
+
+
+
+    }
+}
+    let car1 = Car {
+        make: "fr".into(),
+        model: "sub".into(),
+        size: 51,
+        color: "red".into(),
+    };
+        println!("{:?}", car1);
+    let car2 = Bicycle {
+    size: 58,
+    ..bicycle1
+    };
+    println!("{:?}", car2);
 
 
 
