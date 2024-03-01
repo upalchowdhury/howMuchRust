@@ -221,7 +221,7 @@ pub trait Buildable<T, B:Builder<T>> {
 
 
 #[derive(Debug)]
-struct Car {
+pub struct Car {
     make : String,
     model : String,
     size : u8,
@@ -244,7 +244,7 @@ impl Car {
 
 }
 
-struct CarBuilder {
+pub struct CarBuilder {
     car : Car,
 }
 
@@ -307,33 +307,14 @@ impl Buildable<Car,CarBuilder> for Car {
 
 
 // spread syntax
-
-struct Taxi {
-    number : u8,
-    color : String,
-    make : String,
-    model : String,
-}
-
-impl Taxi {
-    fn new(&self,number:u8,color:String,make:String,model:String) -> Self {
-
-        Self {
-            ..self.new(number, color, make, model)
-        }
-
-
-
-    }
-}
-    let car1 = Car {
+let car1 = Car {
         make: "fr".into(),
         model: "sub".into(),
         size: 51,
         color: "red".into(),
     };
         println!("{:?}", car1);
-    let car2 = Bicycle {
+let car2 = Bicycle {
     size: 58,
     ..bicycle1
     };
@@ -341,6 +322,39 @@ impl Taxi {
 
 
 
+
+// Fluent builder pattern or method chaining
+impl CarBuilder {
+    fn withmake (self, make: &str) -> Self {
+        Self{
+            car:Car { make: make.into(),
+                ..self.car
+            }
+        }
+    }
+
+     fn withcolor (self, color: &str) -> Self {
+        Self{
+            car:Car { color: color.into(),
+                ..self.car
+            }
+        }
+    }
+     fn withmodel (self, model: &str) -> Self {
+        Self{
+            car:Car { model: model.into(),
+                ..self.car
+            }
+        }
+    }
+     fn withsize (self, size: &u8) -> Self {
+        Self{
+            car:Car { size: size,
+                ..self.car
+            }
+        }
+    }
+}
 
 
 

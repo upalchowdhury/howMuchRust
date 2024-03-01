@@ -2,7 +2,7 @@ mod iterator_combinator;
 use ark_serialize::{CanonicalDeserialize,Read};
 use ark_bls12_381::{g2::Config, Bls12_381, Fr, G1Affine, G1Projective, G2Affine, G2Projective};
 use core::marker::PhantomData;
-use crate::iterator_combinator::{Aptcolx, Labardor, Multi, Poodle, Sf};
+use crate::iterator_combinator::{Aptcolx, Buildable, Labardor, Multi, Poodle, Sf};
 
 
 
@@ -51,11 +51,17 @@ fn main(){
 
 
     // builder pattern
-    let mut new_car_builder = CarBuilder::new();
+    let mut new_car_builder = iterator_combinator::CarBuilder::new();
     new_car_builder::withmake("Forrester");
     let car = new_car_builder::build();
 
 
+    //Fluent builder or method chaining
+    let car = iterator_combinator::Car::builder()
+        .withmake("forrester")
+        .withcolor("black")
+        .withsize(33)
+        .withmodel("long")
+    ;
 
-    
 }
