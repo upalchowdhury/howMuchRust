@@ -358,3 +358,145 @@ impl CarBuilder {
 
 
 
+/* Observable pattern : an object, called the subject, maintains a list of its dependents, called observers, and notifies them of any state changes, usually by calling one of their methods.
+
+Self::Subject and Self::Observer are ways to refer to the associated types declared in their respective traits.
+They allow for generic programming by letting trait methods operate on unspecified types that are later concretely defined by the implementers of the traits.
+Arc: A thread-safe reference-counting pointer. Arc stands for Atomically Reference Counted. It allows multiple owners of the same data, with the data cleaned up when the last owner goes out of scope.
+Weak: A non-owning reference to a value within an Arc. Unlike Arc, a Weak reference does not increment the reference count. This is used to prevent circular references which could lead to memory leaks because the reference count never reaches 0.
+dyn Observer: Indicates a trait object. It allows for polymorphism, meaning any type that implements the Observer trait can be referenced by dyn Observer. 
+The Subject = Self part is a trait bound that ensures the Observer trait is implemented for the type Subject
+
+
+*/
+
+pub trait Observer {
+    type Subject;
+    fn observe (&self, subject: &Self::Subject);
+}
+
+pub trait Observable {
+    type Observer;
+    fn update(&self);
+    fn attach(&mut self, observer: Self::Observer);
+    fn detach(&mut self, observer: Self::Observer);
+}
+
+
+pub struct Subject {
+    observers: Vec<Weak<dyn Observer<Subject=Self>>>,
+}
+
+impl Observable for Subject {
+    type Observer = Arc<dyn Observer<Subject = Self>>;
+    fn update(&self) {
+        self.observers
+            .iter()
+            .flat_map(|o| o.upgrade())
+            .for_each(|o| o.observe(self));
+    }
+    fn attach(&mut self, observer: Self::Observer) {
+            self.observers.push(Arc::downgrade(&observer));
+    }
+    fn detach(&mut self, observer: Self::Observer) {
+        self.observers
+            .retain(|f| !f.ptr_eq(&Arc::downgrade(&observer)));
+    }
+}
+
+
+
+
+// Creating state machine with methodless trait and struct tagging
+
+pub trait SessionState {}
+
+pub struct Session<State:SessionState=Initital>{
+    session_id: Uuid,
+    properties:HashMap<String,String>,
+    phantom:PhantomData<State>,
+}
+
+
+pub struct Initital;
+pub struct Anon;
+
+pub struct Authenticated;
+
+pub struct LoggedOut;
+
+
+impl SessionState for Initital {}
+impl SessionState for Anon {}
+impl SessionState for Authenticated {}
+impl SessionState for LoggedOut {}
+
+
+
+pub enum ResumeResult {
+    Invalid,
+    Anon(Session<Anon>),
+    Authenticated(Session<Authenticated>),
+}
+
+
+// Now we will implement same struct but with different tagging 
+impl Session<Initial> {
+/// Returns a new session, defaulting to the anonymous state
+pub fn new() -> Session<Anon> {
+    Session::<Anon> {
+        session_id: Uuid::new_v4(),
+        props: HashMap::new(),
+        phantom: PhantomData,
+    }
+}
+/// Returns the result of resuming this session from an existing ID.
+pub fn resume_from(session_id: Uuid) -> ResumeResult {
+// Here we'd have to check the session_id against a database,
+// and return the result accordingly. For this example we'll
+// just return a new authenticated session for test purposes.
+    ResumeResult::Authenticated(Session::<Authenticated> {
+        session_id,
+        props: HashMap::new(),
+        phantom: PhantomData,
+        })
+    }
+}
+
+// Transition from anon to authenticated
+impl Session<Anon>{
+    pub fn authenticate(
+        self,
+        username: &str,
+        password: &str,
+    ) -> Result<Session<Authenticated>,Session<Anon>> {
+        
+       if !username.is_empty() && !password.is_empty(){ 
+        Ok(Session::<Authenticated>{
+            session_id:self.session_id,
+            props:HashMap::new(),
+            phantom:PhantomData,
+        })
+    } else {
+        Err(self)
+    }
+
+    }
+}
+
+// Adding trasitions for authenticated session
+
+impl Session<Authenticated> {
+    fn update_property(&mut self, key: &str, value:&str) {
+        if let Some(prop) = self.properties.get_mut(key) {
+            *prop = value.to_string();
+        } else {
+            self.properties.insert(key.to_string(),value.to_string());
+        }
+    }
+
+    fn logout (self) -> Session<LoggedOut>{
+        // In real life delete the session from DB
+        Session { session_id: Uuid::nil(), properties:HashMap::new(), phantom: PhantomData }
+    }
+}
