@@ -488,7 +488,7 @@ impl Session<Anon>{
 
 impl Session<Authenticated> {
     fn update_property(&mut self, key: &str, value:&str) {
-        if let Some(prop) = self.properties.get_mut(key) {
+        if let Some(prop) = self.properties.get_mut(key) {  // matching a single pattern
             *prop = value.to_string();
         } else {
             self.properties.insert(key.to_string(),value.to_string());
@@ -500,3 +500,33 @@ impl Session<Authenticated> {
         Session { session_id: Uuid::nil(), properties:HashMap::new(), phantom: PhantomData }
     }
 }
+
+
+// Metaprogramming with macros: macros are like matching 
+macro_rules! newmacro {
+    ($($arg::aa)*) => {
+        println!("fasdfa: {}",$($arg)*)
+    };
+}
+
+macro_rules! dog_struct {
+    ($breed:ident) => {
+            struct $breed {
+                    name: String,
+                    age: i32,
+                    breed: String,
+                }
+            impl $breed {
+                fn new(name: &str, age: i32) -> Self {
+                            Self {
+                                name: name.into(),
+                                age,
+                                breed: stringify!($breed).into(),
+                            }
+                }
+            }
+        };
+}
+dog_struct!(Labrador);
+dog_struct!(Golden);
+dog_struct!(Poodle);
