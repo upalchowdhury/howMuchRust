@@ -64,11 +64,6 @@ pub struct Poodle {}
 pub struct Labardor {}
 
 
-
-
-// specialized implementations to get the name of the breed, without having to actually
-//store that value as state in the structure
-//doing a concrete specialization for with the given type in compile time opt
 impl Dog<Labardor> {
     pub fn breed_name (&self) -> &'static str {
         "labardor"
@@ -77,7 +72,7 @@ impl Dog<Labardor> {
 
 impl Dog<Poodle> {
     pub fn breed_feature (&self) -> &'static str {
-        "poodle's feature like barking"
+        "poodle's features"
     }
 }
 
@@ -126,16 +121,12 @@ fn main() {
 // Separation of state and functions AND polymorphism (trait objects)
 
 pub struct Sf;
-
 pub struct Multi;
-
 pub struct Aptcolx;
-
 
 trait Bathroom {
     fn add (&self) -> u8;
 }
-
 trait Garage {
     fn add (&self) -> u8;
 }
@@ -154,14 +145,12 @@ impl Room for Sf {
     }
     
 }
-
 impl Room for Multi {
     fn add (&self) -> u8{
         8
     }
     
 }
-
 impl Room for Aptcolx { // testing default
     // fn add (&self) -> u8
     // {
@@ -169,10 +158,7 @@ impl Room for Aptcolx { // testing default
     // }
     
 }
-
-
-
-pub fn build (house : &impl Room) -> u8 { // instead of multi or sf use trait to use trait obj. use dyn or impl
+pub fn build (house : &dyn Room) -> u8 { // instead of multi or sf use trait to use trait obj. use dyn or impl
     let s = house.add();
 
     println!("{:?}",s);
@@ -212,14 +198,9 @@ pub trait Builder<T> {
     fn new() -> Self;
     fn build(self) -> T;
 }
-
-
 pub trait Buildable<T, B:Builder<T>> {
     fn builder () -> B;
 }
-
-
-
 #[derive(Debug)]
 pub struct Car {
     make : String,
@@ -509,24 +490,58 @@ macro_rules! newmacro {
     };
 }
 
-macro_rules! dog_struct {
-    ($breed:ident) => {
-            struct $breed {
+macro_rules! car_struct {
+    ($carmodel:ident) => {
+            struct $carmodel {
                     name: String,
                     age: i32,
-                    breed: String,
+                    model: String,
                 }
-            impl $breed {
+            impl $carmodel {
                 fn new(name: &str, age: i32) -> Self {
                             Self {
                                 name: name.into(),
                                 age,
-                                breed: stringify!($breed).into(),
+                                model: stringify!($carmodel).into(),
                             }
                 }
             }
         };
 }
-dog_struct!(Labrador);
-dog_struct!(Golden);
-dog_struct!(Poodle);
+car_struct!(Suv);
+car_struct!(Sedan);
+
+
+
+// Pattern matching 
+fn get_username(user_id: u32) -> Option<String> {
+    match user_id {
+        1 => Some(String::from("JohnDoe")),
+        2 => Some(String::from("JaneDoe")),
+        _ => None,
+    }
+}
+
+fn main() {
+    let user_id = 1;
+    if let Some(username) = get_username(user_id) {
+        println!("Found user: {}", username);
+    } else {
+        println!("No user found with ID {}", user_id);
+    }
+}
+
+
+
+// Iterator combinator functional 
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+
+    // Use `map` to square each number
+    let squares = numbers.iter().map(|&x| x * x);
+
+    // Use `fold` to sum up the squares
+    let sum_of_squares = squares.fold(0, |acc, x| acc + x);
+
+    println!("Sum of squares: {}", sum_of_squares);
+}
