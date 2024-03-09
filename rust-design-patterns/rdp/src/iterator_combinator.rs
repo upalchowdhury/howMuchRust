@@ -522,7 +522,7 @@ fn get_username(user_id: u32) -> Option<String> {
     }
 }
 
-fn main() {
+fn patternmatching() {
     let user_id = 1;
     if let Some(username) = get_username(user_id) {
         println!("Found user: {}", username);
@@ -534,14 +534,42 @@ fn main() {
 
 
 // Iterator combinator functional 
-fn main() {
+fn iteratorcombinator() {
     let numbers = vec![1, 2, 3, 4, 5];
 
-    // Use `map` to square each number
+        // Use `map` to square each number
     let squares = numbers.iter().map(|&x| x * x);
 
-    // Use `fold` to sum up the squares
+        // Use `fold` to sum up the squares
     let sum_of_squares = squares.fold(0, |acc, x| acc + x);
 
-    println!("Sum of squares: {}", sum_of_squares);
+    
+    let secret = Fr::from(BigInt!("123"));
+    let my_key = G1Affine::generator().mul(secret).into_affine();
+    let new_key = public_keys
+            .iter()
+            .fold(G1Projective::from(my_key), |acc, (key, _)| acc + key.neg())
+            .into_affine();
+
+    let my_proof = pok_prove(secret, new_key_index);
+    let new_proof = public_keys
+            .iter()
+            .enumerate()
+            .fold(G2Projective::from(my_proof), |acc, (i, (_, proof))| {
+                let rhs = Fr::from(new_key_index as u128 + 1) * Fr::from(i as u128 + 1).inverse().unwrap();
+                acc + proof.mul(rhs).neg()
+            })
+            .into_affine();
+
+    let my_sig = bls_sign(secret, message);
+    let fake_signature = public_keys
+            .iter()
+            .fold(G2Projective::from(my_sig), |acc, (_, proof)| acc + proof.neg())
+            .into_affine();
+    let aggregate_signature = public_keys
+            .iter()
+            .fold(G2Projective::from(fake_signature), |acc, (_, proof)| acc + proof)
+            .into_affine();
+
+
 }
